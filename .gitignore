@@ -6,7 +6,6 @@ __pycache__
 *.xlsx
 *.csv
 *.log
-*.txt
 *.pyc
 *.json
 venv
