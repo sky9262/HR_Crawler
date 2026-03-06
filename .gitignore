@@ -1,0 +1,12 @@
+.env
+.qoder
+__pycache__
+.git
+.DS_Store
+*.xlsx
+*.csv
+*.log
+*.txt
+*.pyc
+*.json
+venv

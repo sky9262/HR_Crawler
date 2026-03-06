@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Hunter - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8eeff;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .company-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .company-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .company-item:last-child {
+            border-bottom: none;
+        }
+        
+        .company-item input {
+            margin-right: 10px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .results-table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        .results-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .status-running {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HR Hunter</h1>
+            <p>Find HR contacts from Japanese companies using AI-powered search</p>
+        </div>
+        
+        <div class="content">
+            <!-- Step 1: Upload Excel -->
+            <div class="step" id="step1">
+                <h2><span class="step-number">1</span>Upload Excel File</h2>
+                <div class="upload-area" id="uploadArea">
+                    <p>Drag & drop your Excel file here or click to browse</p>
+                    <p style="color: #666; font-size: 0.9em; margin-top: 10px;">Supported: .xlsx, .xls</p>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                </div>
+                <div id="uploadStatus"></div>
+            </div>
+            
+            <!-- Step 2: Select Column -->
+            <div class="step hidden" id="step2">
+                <h2><span class="step-number">2</span>Select Company Column</h2>
+                <select id="columnSelect">
+                    <option value="">-- Select a column --</option>
+                </select>
+                <div id="columnPreview" style="margin-top: 15px;"></div>
+            </div>
+            
+            <!-- Step 3: Select Companies -->
+            <div class="step hidden" id="step3">
+                <h2><span class="step-number">3</span>Select Companies to Search</h2>
+                <p style="margin-bottom: 10px;">
+                    <label><input type="checkbox" id="selectAll" checked> Select All</label>
+                    <span id="companyCount" style="margin-left: 20px; color: #666;"></span>
+                </p>
+                <div class="company-list" id="companyList"></div>
+                <button class="btn" id="startSearchBtn" style="margin-top: 15px;">Start Search</button>
+            </div>
+            
+            <!-- Step 4: Progress -->
+            <div class="step hidden" id="step4">
+                <h2><span class="step-number">4</span>Search Progress</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+                </div>
+                <p>Current: <span id="currentCompany">-</span></p>
+                <p>Status: <span class="status-badge status-running" id="statusBadge">Running</span></p>
+            </div>
+            
+            <!-- Step 5: Results -->
+            <div class="step hidden" id="step5">
+                <h2><span class="step-number">5</span>Search Results</h2>
+                <div id="resultsSummary"></div>
+                <div id="resultsTable"></div>
+                <button class="btn" id="downloadBtn" style="margin-top: 20px;">Download CSV</button>
+                <button class="btn" id="newSearchBtn" style="margin-top: 20px; margin-left: 10px;">New Search</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFileId = null;
+        let currentJobId = null;
+        let statusInterval = null;
+        
+        // File upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+        
+        async function handleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            document.getElementById('uploadStatus').innerHTML = '<div class="spinner"></div> Uploading...';
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentFileId = data.file_id;
+                    document.getElementById('uploadStatus').innerHTML = 
+                        `<div class="success-message">✓ Uploaded: ${data.filename} (${data.total_rows} rows)</div>`;
+                    
+                    // Populate column select
+                    const columnSelect = document.getElementById('columnSelect');
+                    columnSelect.innerHTML = '<option value="">-- Select a column --</option>';
+                    data.columns.forEach(col => {
+                        columnSelect.innerHTML += `<option value="${col}">${col}</option>`;
+                    });
+                    
+                    document.getElementById('step2').classList.remove('hidden');
+                } else {
+                    document.getElementById('uploadStatus').innerHTML = 
+                        `<div class="error-message">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('uploadStatus').innerHTML = 
+                    `<div class="error-message">Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Column selection
+        document.getElementById('columnSelect').addEventListener('change', async (e) => {
+            const column = e.target.value;
+            if (!column || !currentFileId) return;
+            
+            try {
+                const response = await fetch('/get_column_values', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({file_id: currentFileId, column: column})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('columnPreview').innerHTML = 
+                        `<div class="success-message">Found ${data.count} unique companies in column "${column}"</div>`;
+                    
+                    // Populate company list
+                    const companyList = document.getElementById('companyList');
+                    companyList.innerHTML = '';
+                    data.values.forEach(company => {
+                        companyList.innerHTML += `
+                            <div class="company-item">
+                                <input type="checkbox" class="company-checkbox" value="${company}" checked>
+                                <label>${company}</label>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('companyCount').textContent = `${data.count} companies`;
+                    document.getElementById('step3').classList.remove('hidden');
+                    
+                    // Select all functionality
+                    document.getElementById('selectAll').addEventListener('change', (e) => {
+                        document.querySelectorAll('.company-checkbox').forEach(cb => {
+                            cb.checked = e.target.checked;
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+        
+        // Start search
+        document.getElementById('startSearchBtn').addEventListener('click', async () => {
+            const selectedCompanies = Array.from(document.querySelectorAll('.company-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedCompanies.length === 0) {
+                alert('Please select at least one company');
+                return;
+            }
+            
+            const column = document.getElementById('columnSelect').value;
+            
+            try {
+                const response = await fetch('/start_search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        file_id: currentFileId,
+                        column: column,
+                        companies: selectedCompanies
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentJobId = data.job_id;
+                    document.getElementById('step4').classList.remove('hidden');
+                    document.getElementById('startSearchBtn').disabled = true;
+                    
+                    // Start polling for status
+                    statusInterval = setInterval(checkJobStatus, 2000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+        
+        // Check job status
+        async function checkJobStatus() {
+            if (!currentJobId) return;
+            
+            try {
+                const response = await fetch(`/job_status/${currentJobId}`);
+                const data = await response.json();
+                
+                // Update progress
+                document.getElementById('progressBar').style.width = `${data.progress_percent}%`;
+                document.getElementById('progressBar').textContent = `${data.progress_percent}%`;
+                document.getElementById('currentCompany').textContent = data.current || '-';
+                
+                // Update status badge
+                const statusBadge = document.getElementById('statusBadge');
+                statusBadge.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                
+                if (data.status === 'completed') {
+                    statusBadge.className = 'status-badge status-completed';
+                    clearInterval(statusInterval);
+                    showResults(data);
+                } else if (data.status === 'error') {
+                    statusBadge.className = 'status-badge status-error';
+                    clearInterval(statusInterval);
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+        
+        // Show results
+        function showResults(data) {
+            document.getElementById('step5').classList.remove('hidden');
+            
+            // Summary
+            const totalContacts = data.results.reduce((sum, r) => sum + r.contacts.length, 0);
+            document.getElementById('resultsSummary').innerHTML = `
+                <div class="success-message">
+                    ✓ Search completed! Found ${totalContacts} contacts from ${data.results.length} companies.
+                </div>
+            `;
+            
+            // Results table
+            let tableHTML = '<table class="results-table"><thead><tr>';
+            tableHTML += '<th>Company</th><th>HR Name</th><th>Title</th><th>Email</th><th>LinkedIn</th><th>Source</th>';
+            tableHTML += '</tr></thead><tbody>';
+            
+            data.results.forEach(result => {
+                if (result.contacts.length === 0) {
+                    tableHTML += `<tr><td>${result.company}</td><td colspan="5" style="color: #999;">No contacts found</td></tr>`;
+                } else {
+                    result.contacts.forEach(contact => {
+                        tableHTML += `<tr>
+                            <td>${result.company}</td>
+                            <td>${contact.name || '-'}</td>
+                            <td>${contact.title || '-'}</td>
+                            <td>${contact.email || '-'}</td>
+                            <td>${contact.linkedin ? `<a href="${contact.linkedin}" target="_blank">Link</a>` : '-'}</td>
+                            <td>${contact.source || '-'}</td>
+                        </tr>`;
+                    });
+                }
+            });
+            
+            tableHTML += '</tbody></table>';
+            document.getElementById('resultsTable').innerHTML = tableHTML;
+        }
+        
+        // Download results
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (currentJobId) {
+                window.location.href = `/download_results/${currentJobId}`;
+            }
+        });
+        
+        // New search
+        document.getElementById('newSearchBtn').addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
